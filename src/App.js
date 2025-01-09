@@ -1,39 +1,54 @@
-import {  useState, useRef } from 'react'
-import './index.css';
+import { useRef } from 'react';
 
-const VideoPlayer =() => {
-  const [playing, setPlaying] = useState(false)
-  const ref = useRef(null)
+export default function CatFriends() {
+  const listRef = useRef(null);
 
-  const handleClick = () => {
-    const nextIsPlaying = !playing
-    setPlaying(nextIsPlaying)
-    
-    if(nextIsPlaying){
-      ref.current.play();
-    } else {
-      ref.current.pause();
-    }
+  function scrollToIndex(index) {
+    const listNode = listRef.current;
+    // This line assumes a particular DOM structure:
+    const imgNode = listNode.querySelectorAll('li > img')[index];
+    imgNode.scrollIntoView({
+      behavior: 'smooth',
+      block: 'nearest',
+      inline: 'center'
+    });
   }
-  
+
   return (
     <>
-      <button onClick={handleClick}>
-        {playing ? 'Pause' : 'Play'}
-      </button>
-      <video
-        width='250'
-        ref={ref}
-        onPlay={() => setPlaying(true)}
-        onPause={() => setPlaying(false)}
-        > 
-        <source
-          src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4"
-          type="video/mp4"
-        />
-      </video>
+      <nav>
+        <button onClick={() => scrollToIndex(0)}>
+          Neo
+        </button>
+        <button onClick={() => scrollToIndex(1)}>
+          Millie
+        </button>
+        <button onClick={() => scrollToIndex(2)}>
+          Bella
+        </button>
+      </nav>
+      <div>
+        <ul ref={listRef}>
+          <li>
+            <img
+              src="https://placecats.com/neo/300/200"
+              alt="Neo"
+            />
+          </li>
+          <li>
+            <img
+              src="https://placecats.com/millie/200/200"
+              alt="Millie"
+            />
+          </li>
+          <li>
+            <img
+              src="https://placecats.com/bella/199/200"
+              alt="Bella"
+            />
+          </li>
+        </ul>
+      </div>
     </>
   );
 }
-
-export default VideoPlayer;
