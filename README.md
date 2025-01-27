@@ -1,70 +1,137 @@
-# Getting Started with Create React App
+¡Claro! Vamos a descomponer el concepto de useMemo de forma más sencilla y con ejemplos más prácticos, tanto simples como 
+complejos.
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+¿Qué es useMemo en pocas palabras?
 
-## Available Scripts
+Imagina que tienes una receta muy elaborada. Cada vez que quieres hacer el plato, tienes que seguir todos los pasos desde 
+el principio. Con useMemo, es como tener un "caché" para el plato ya preparado. Si no has modificado los ingredientes 
+(las dependencias), simplemente sirves el plato del caché en lugar de volver a cocinarlo todo.
 
-In the project directory, you can run:
+¿Cuándo usar useMemo?
 
-### `npm start`
+Cálculos costosos: Cuando tienes cálculos que toman mucho tiempo y no cambian a menudo, como filtrar una lista grande de 
+datos o realizar operaciones matemáticas complejas.
+Componentes memoizados: Si estás usando memo en un componente hijo, useMemo te ayuda a garantizar que las props que le 
+pasas no cambien innecesariamente.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+Ejemplo simple:
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+JavaScript
 
-### `npm test`
+import { useMemo, useState } from 'react';
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+function Counter() {
+  const [count, setCount] = useState(0);
 
-### `npm run build`
+  const expensiveCalculation = useMemo(() => {
+    // Simulación de un cálculo costoso
+    console.log('Calculando...');
+    return count * count;
+  }, [count]);
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+  return (
+    <div>
+      <p>El resultado del cálculo es: {expensiveCalculation}</p>
+      <button onClick={() => setCount(count + 1)}>Incrementar</button>
+    </div>
+  );
+}
+En este ejemplo:
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+expensiveCalculation se calcula solo cuando count cambia.
+Si aumentas el contador, el cálculo se vuelve a hacer, pero si solo renderizas el componente sin cambiar el contador, se reutiliza el resultado anterior.
+Ejemplo más complejo: Filtrando una lista grande
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+JavaScript
 
-### `npm run eject`
+import { useMemo, useState } from 'react';
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+function SearchList({ items }) {
+  const [searchQuery, setSearchQuery] = useState('');
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+  const filteredItems = useMemo(() => {
+    return items.filter(item => item.name.toLowerCase().includes(searchQuery.toLowerCase()));
+  }, [items, searchQuery]);
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+  return (
+    <div>
+      <input type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
+      <ul>
+        {filteredItems.map(item => <li key={item.id}>{item.name}</li>)}
+      </ul>
+    </div>
+  );
+}
+Aquí, filteredItems solo se recalcula cuando items o searchQuery cambian. 
+Esto evita filtrar la lista completa cada vez que el componente se renderiza, mejorando el rendimiento.
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+¿Cómo funciona useMemo?
 
-## Learn More
+Primera vez: Cuando el componente se renderiza por primera vez, se ejecuta la función proporcionada a useMemo y el resultado 
+se almacena.Renderizados posteriores: Si las dependencias no han cambiado, se devuelve el valor almacenado. Si alguna depende
+ncia ha cambiado, se vuelve a ejecutar la función y se almacena el nuevo resultado.
+Puntos clave a recordar:
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+Dependencias: Asegúrate de incluir todas las variables que afectan el resultado del cálculo en la lista de dependencias.
+Cálculos puros: La función proporcionada a useMemo debe ser pura, es decir, siempre debe devolver el mismo resultado para 
+los mismos argumentos.Rendimiento: useMemo no es una panacea. Úsalo con moderación y solo cuando sea necesario.
+useCallback: Para memorizar funciones, utiliza useCallback en lugar de useMemo.
+¿Cuándo no usar useMemo?
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+Cálculos simples: Para cálculos muy simples, el costo de usar useMemo puede superar los beneficios.
+Efectos secundarios: No uses useMemo para memorizar funciones con efectos secundarios (como llamadas a APIs).
+En resumen:
 
-### Code Splitting
+useMemo es una herramienta poderosa para optimizar el rendimiento de tus aplicaciones React, especialmente cuando tienes 
+cálculos costosos que no necesitan recalcularse con frecuencia. Al entender cómo funciona y cuándo usarlo, puedes crear 
+aplicaciones más rápidas y eficientes.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+Solución de problemas con useMemo
+Mi cálculo se ejecuta dos veces en cada nueva renderización
+Esto es un comportamiento normal en el modo estricto de React. React llama a las funciones dos veces para detectar posibles errores. Asegúrate de que tus funciones sean puras y eviten mutar datos.
 
-### Analyzing the Bundle Size
+useMemo debería devolver un objeto, pero devuelve undefined
+Sintaxis incorrecta: Asegúrate de usar la sintaxis correcta para crear objetos dentro de una función de flecha.
+Falta el return: Siempre incluye un return para devolver el valor calculado.
+El cálculo de useMemo se ejecuta en cada renderizado
+Arreglo de dependencias: Verifica que el arreglo de dependencias incluya todas las variables que afectan el cálculo.
+Comparación de objetos: Si estás comparando objetos, asegúrate de usar una comparación profunda si es necesario.
+Objetos mutables: Evita mutar objetos dentro de useMemo.
+No puedo usar useMemo dentro de un bucle
+Extrae un componente: Crea un componente separado para cada elemento y utiliza useMemo dentro de ese componente.
+Utiliza memo: Envuelve el componente en memo para evitar re-renderizados innecesarios.
+Explicación detallada:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+Cuando usamos useMemo en React, estamos indicando a React que almacene en caché el resultado de un cálculo y lo reutilice en renderizados posteriores si las dependencias no han cambiado. Esto puede mejorar significativamente el rendimiento de nuestra aplicación, especialmente cuando tenemos cálculos complejos o costosos.
 
-### Making a Progressive Web App
+Problemas comunes y soluciones:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+Ejecución doble en modo estricto: Esto es normal y ayuda a detectar errores.
+Retorno incorrecto: Asegúrate de que tu función retorne el valor correcto utilizando la sintaxis adecuada.
+Dependencias incorrectas: Las dependencias determinan cuándo se vuelve a calcular el valor. Inclúyelas todas y solo las 
+necesarias.
+Objetos mutables: Evita modificar los objetos originales dentro de useMemo. Crea nuevos objetos si es necesario.
+Uso dentro de bucles: Extrae los cálculos a un componente separado para utilizar useMemo correctamente.
 
-### Advanced Configuration
+Ejemplo:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+JavaScript
 
-### Deployment
+import { useMemo, useState } from 'react';
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+function MyComponent({ items }) {
+  const [searchTerm, setSearchTerm] = useState('');
 
-### `npm run build` fails to minify
+  const filteredItems = useMemo(() => {
+    return items.filter(item => item.name.includes(searchTerm));
+  }, [items, searchTerm]);
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+  // ...
+}
+En este ejemplo, filteredItems solo se recalcula cuando items o searchTerm cambian.
+
+Consejos adicionales:
+
+Funciones puras: Las funciones dentro de useMemo deben ser puras, es decir, no deben tener efectos secundarios.
+Comparación profunda: Para objetos complejos, utiliza una biblioteca como lodash para realizar comparaciones profundas.
+Rendimiento: useMemo no es una panacea. Úsalo de manera estratégica para optimizar el rendimiento de tu aplicación.
